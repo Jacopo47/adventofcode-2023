@@ -72,6 +72,32 @@ public class GondolaEngine
     return findNumbersAdjacentToSymbols(near ? accumulator + number : accumulator, index+=1, [], isNear, prev, curr, next);
   }
 
+    public int findGearWithAdjacentNumbers(int accumulator, int index, IEnumerable<char> numbersSequence, bool near, char[] prev, char[] curr, char[]? next) {
+    if (index >= curr.Length) {
+      //Console.WriteLine("I'm returning");
+      var num = numbersSequence.Any() ? int.Parse(String.Concat(numbersSequence)) : 0;
+      return near ? accumulator + num : accumulator;
+    }
+    char symbol = curr[index];
+    bool isNear = isNearToGear(prev, curr, next, index);
+
+    //Console.WriteLine($"{index}. {symbol} - has nears: {isNear}");
+
+
+    if (Char.IsDigit(symbol)) {
+      return findGearWithAdjacentNumbers(accumulator, index+=1, numbersSequence.Append(symbol), near || isNear, prev, curr, next);
+    }
+
+    var number = numbersSequence.Any() ? int.Parse(String.Concat(numbersSequence)) : 0;
+    //Console.WriteLine($"Summing {number} ? {near}");
+    if (symbol == '.') {
+      //Console.WriteLine("Skipping dot..");
+
+      return findGearWithAdjacentNumbers(near ? accumulator + number : accumulator, index+=1, [], false, prev, curr, next);
+    }
+    return findGearWithAdjacentNumbers(near ? accumulator + number : accumulator, index+=1, [], isNear, prev, curr, next);
+  }
+
   public bool isNearToSymbol(char[] prev, char[] curr, char[]? next, int index) {
     var prevAdjacentElements = prev.Skip(index - 1).Take(3);
     var nextAdjacentElements = (next ?? []).Skip(index - 1).Take(3);
@@ -91,5 +117,33 @@ public class GondolaEngine
     return adjacents
       .Where(_ => !(Char.IsDigit(_) || _ == '.'))
       .Any();
+  }
+
+    public IEnumerable<Point> nearGearPosition(char[] prev, char[] curr, char[]? next, int index) {
+    var prevAdjacentElements = prev.Skip(index - 1).Take(3);
+    var nextAdjacentElements = (next ?? []).Skip(index - 1).Take(3);
+    
+    var prevElement = curr[index > 0 ? index - 1 : index];
+    var nextElement = curr[index < curr.Length -1 ? index + 1 : index];
+
+
+    var adjacents = prevAdjacentElements
+      .Concat(nextAdjacentElements)
+      .Append(prevElement)
+      .Append(nextElement);
+
+    Console.WriteLine($"[{string.Join(", ", adjacents.ToArray())}]");
+    
+
+    return adjacents
+      .Where(_ => _ == '*')
+      .Any();
+  }
+
+
+  record Point {
+    int X {get; init;}
+    int Y {get; init;}
+
   }
 }
